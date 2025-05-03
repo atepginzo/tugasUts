@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Analisis Sentimen Netizen</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        h1, h2, h3 {
+            margin-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: auto;
+        }
+
+        .form-card {
+            background: white;
+            padding: 16px;
+            margin-bottom: 25px;
+            border-radius: 10px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            resize: vertical;
+        }
+
+        input[type="submit"] {
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #1565c0;
+        }
+
+        .result {
+            font-weight: 600;
+            color: #444;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .card img {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 6px 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        thead {
+            background-color: #eee;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .card img {
+            width: 100%;
+            border-radius: 8px;
+            max-height: 250px;
+            object-fit: contain;
+        }
+
+        @media (max-width: 600px) {
+            .card img {
+                max-height: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Analisis Sentimen Komentar Netizen</h1>
+
+        <div class="form-card">
+            <form method="POST">
+                <label for="comment"><strong>Ketik komentar netizen:</strong></label><br>
+                <textarea name="comment" rows="3" placeholder="Contoh: Gus Miftah tuh nyindir mulu..." required>{{ comment }}</textarea><br>
+                <input type="submit" value="Klasifikasikan">
+            </form>
+
+            {% if prediction %}
+                <div class="result">
+                    Hasil Klasifikasi Sentimen: <span style="color:#1e88e5;">{{ prediction }}</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <h2>📁 Contoh Komentar dari Dataset</h2>
+        <div class="form-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Platform</th>
+                        <th>Komentar</th>
+                        <th>Timestamp</th>
+                        <th>Sentimen</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in sample_data %}
+                    <tr>
+                        <td>{{ row.platform }}</td>
+                        <td>{{ row.komentar }}</td>
+                        <td>{{ row.timestamp }}</td>
+                        <td>{{ row.sentimen }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <h2>📊 Visualisasi Data</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>Distribusi Sentimen</h3>
+                <img src="{{ charts.sentimen }}" alt="Distribusi Sentimen">
+            </div>
+            <div class="card">
+                <h3>Distribusi Platform</h3>
+                <img src="{{ charts.platform }}" alt="Distribusi Platform">
+            </div>
+            <div class="card">
+                <h3>Aktivitas per Jam</h3>
+                <img src="{{ charts.per_jam }}" alt="Komentar per Jam">
+            </div>
+            <div class="card">
+                <h3>Aktivitas per Hari</h3>
+                <img src="{{ charts.per_hari }}" alt="Komentar per Hari">
+            </div>
+            <div class="card">
+                <h3>Matriks Kebingungan</h3>
+                <img src="{{ charts.confusion }}" alt="Confusion Matrix">
+            </div>
+        </div>
+
+        <h2 style="margin-top: 30px;">☁️ Wordcloud Sentimen</h2>
+        <div class="grid">
+            <div class="card">
+                <h3>Positif</h3>
+                <img src="{{ charts.wordcloud_positif }}" alt="Wordcloud Positif">
+            </div>
+            <div class="card">
+                <h3>Negatif</h3>
+                <img src="{{ charts.wordcloud_negatif }}" alt="Wordcloud Negatif">
+            </div>
+            <div class="card">
+                <h3>Netral</h3>
+                <img src="{{ charts.wordcloud_netral }}" alt="Wordcloud Netral">
+            </div>
+        </div>
+
+        <h2 style="margin-top: 30px;">🖼️ Infografis Instagram</h2>
+        <div class="grid">
+            {% for i in range(1, 7) %}
+            <div class="card">
+                <img src="{{ url_for('static', filename='infografis/' ~ i|string ~ '.png') }}" alt="Infografis {{ i }}">
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
